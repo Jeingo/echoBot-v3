@@ -5,8 +5,6 @@ import qualified Data.Map as Map (empty)
 import App.Config
 import App.MainLoop
 
-main = return ()
-{--
 main :: IO ()
 main = do
   myConfigTmp <- readConfig
@@ -14,4 +12,3 @@ main = do
   let emptyListUsers = Map.empty
   mainLoop myConfig emptyListUsers 
   return ()
---}

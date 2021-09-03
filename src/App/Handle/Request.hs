@@ -1,6 +1,10 @@
 module App.Handle.Request where
 
-import qualified Data.ByteString as B
+import Type.Response
+import App.Config
 
-class Response a where
-  makeResponse :: B.ByteString -> a
+data Handle m = Handle
+  {someFunc :: m ()}
+  
+sendEcho :: (Monad m , Response a) => Handle m -> a -> ConfData -> ListUsers -> Token -> m ListUsers
+sendEcho = undefined

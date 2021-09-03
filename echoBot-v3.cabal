@@ -30,6 +30,7 @@ library
       App.Handle.Request
       App.MainLoop
       App.Request
+      Type.Response
   other-modules:
       Paths_echoBot_v3
   hs-source-dirs:
