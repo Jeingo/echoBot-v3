@@ -2,6 +2,8 @@
 
 module App.MainLoop where
 
+import Data.Maybe
+
 import Type.Response
 import App.Config
 import App.Request
@@ -13,8 +15,7 @@ mainLoop conf listUsers = do
   let token = getToken conf
 
   responseTmp <- getUpdates token 
-  print responseTmp
-  let response = parseResponseToMyType responseTmp
+  let response = fromJust $ parseResponseToMyType responseTmp 
 
   newListUsers <- sendEcho response conf listUsers token
 
@@ -22,4 +23,3 @@ mainLoop conf listUsers = do
   nextStepRequest responseOffset token
 
   mainLoop conf newListUsers
-

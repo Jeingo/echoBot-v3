@@ -19,10 +19,7 @@ getUpdates (Token token) = do
   resp <- N.httpBS $ N.parseRequest_ req 
   return $ N.getResponseBody resp 
 
-parseResponseToMyType = undefined
-
 sendEcho = undefined
-
 
 getOffset = undefined
 
