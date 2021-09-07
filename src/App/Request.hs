@@ -5,6 +5,7 @@ module App.Request where
 import qualified Data.ByteString as B
 import qualified Data.ByteString.UTF8 as B8
 import qualified Network.HTTP.Simple as N
+import qualified Data.Map as Map
 import qualified Data.Text as T
 import Data.Aeson
 import Data.Maybe
@@ -35,7 +36,7 @@ parseResponseToMyType respTmp
         respS = decodeStrict respTmp :: Maybe RespStiker
         respE = decodeStrict respTmp :: Maybe RespEmpty
 
-sendEcho :: ResponseAll -> ConfData -> ListUsers -> Token -> IO ListUsers 
+sendEcho :: ResponseAll -> ConfData -> ListUsers -> Token -> IO () 
 sendEcho = undefined 
 
 getOffset :: ResponseAll -> Offset 
@@ -87,18 +88,19 @@ sendStikers resp (Token token) numOfRepeat = do
   replicateM_ numOfRepeat $ N.httpNoBody $ N.parseRequest_ req
   return ()
 
+addNewUser :: ResponseAll -> ListUsers -> Int -> ListUsers 
+addNewUser (RT resp) listUsers numOfRepeat = if Map.member (getJustId resp) listUsers
+                                        then listUsers
+                                        else Map.insert (getJustId resp) numOfRepeat listUsers
 
+addNewUser (RS resp) listUsers numOfRepeat = if Map.member (getJustId resp) listUsers
+                                        then listUsers
+                                        else Map.insert (getJustId resp) numOfRepeat listUsers
 
+addNewUser (RB resp) listUsers numOfRepeat = Map.insert (getJustId resp) num listUsers 
+  where num = read $ T.unpack (getNumRepeat resp) :: Int 
 
-
-
-
-
-
-
-
-
-
+addNewUser (RE resp) listUsers numOfRepeat = listUsers 
 
 
 

@@ -23,6 +23,7 @@ type HelpText = String
 type RepeatText = String
 type KeyBoardJson = String
 
+
 data ResponseAll = RT RespText | RB RespButton | RS RespStiker | RE RespEmpty deriving (Show, Eq)
 data RespText = RespText UpdateId JustId Message deriving (Show, Eq)
 data RespButton = RespButton UpdateId JustId NumRepeat deriving (Show, Eq)
