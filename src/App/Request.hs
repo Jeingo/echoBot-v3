@@ -11,10 +11,10 @@ import Data.Aeson
 import Data.Maybe
 import Control.Monad
 
-import qualified App.Handle.Request as Request 
 import Type.Response
 import App.Config
 
+-- get Response
 
 urlApiTelegram :: String
 urlApiTelegram = "https://api.telegram.org/bot"
@@ -24,6 +24,8 @@ getUpdates (Token token) = do
   let req = urlApiTelegram ++ token ++ "/getUpdates" ++ "?timeout=29"
   resp <- N.httpBS $ N.parseRequest_ req 
   return $ N.getResponseBody resp 
+
+-- parse Response
 
 parseResponseToMyType :: B.ByteString -> ResponseAll 
 parseResponseToMyType respTmp
@@ -36,8 +38,28 @@ parseResponseToMyType respTmp
         respS = decodeStrict respTmp :: Maybe RespStiker
         respE = decodeStrict respTmp :: Maybe RespEmpty
 
+-- send Request
+
 sendEcho :: ResponseAll -> ConfData -> ListUsers -> Token -> IO () 
-sendEcho = undefined 
+
+sendEcho (RE resp) conf listUsers token = return ()
+
+sendEcho (RB resp) conf listUsers token = return ()
+
+sendEcho (RT resp) conf listUsers token = do
+  let numOfRepeat = fromJust $ Map.lookup (getJustId resp) listUsers 
+  case (getMessage resp) of
+    "/help" -> sendHelpText (helpText conf) (getJustId resp) token
+    "/repeat" -> sendKeyboard (repeatText conf) (button conf) (getJustId resp) token
+    _ -> sendMessages resp token numOfRepeat
+  return () 
+
+sendEcho (RS resp) conf listUsers token = do
+  let numOfRepeat = fromJust $ Map.lookup (getJustId resp) listUsers 
+  sendStikers resp token numOfRepeat
+  return () 
+
+-- get offset and next step
 
 getOffset :: ResponseAll -> Offset 
 getOffset (RT a) = show $ ( getUpdateId a ) + 1 
@@ -52,7 +74,7 @@ nextStepRequest offset (Token token ) = do
   N.httpNoBody $ N.parseRequest_ req
   return ()
 
--- For handle IO
+-- helper for send function 
 
 sendHelpText :: HelpText -> JustId -> Token -> IO ()
 sendHelpText helpT chatId (Token token) = do
@@ -84,9 +106,11 @@ sendStikers :: RespStiker -> Token -> Int -> IO ()
 sendStikers resp (Token token) numOfRepeat = do
   let chId = show $ getJustId resp
   let stikerId = T.unpack $ getStikerId resp
-  let req = urlApiTelegram ++ token ++ "/sendMessage" ++ "?chat_id=" ++ chId ++ "&animation=" ++  stikerId 
+  let req = urlApiTelegram ++ token ++ "/sendAnimation" ++ "?chat_id=" ++ chId ++ "&animation=" ++  stikerId 
   replicateM_ numOfRepeat $ N.httpNoBody $ N.parseRequest_ req
   return ()
+
+-- add new user
 
 addNewUser :: ResponseAll -> ListUsers -> Int -> ListUsers 
 addNewUser (RT resp) listUsers numOfRepeat = if Map.member (getJustId resp) listUsers

@@ -16,7 +16,7 @@ mainLoop conf listUsers = do
   let response = parseResponseToMyType responseTmp  
 
   let newListUsers = addNewUser response listUsers (startRepeat conf)
-  --_ <- sendEcho response conf newListUsers token
+  sendEcho response conf newListUsers token
 
   let responseOffset = getOffset response 
   nextStepRequest responseOffset token
