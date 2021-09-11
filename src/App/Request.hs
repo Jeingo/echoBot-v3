@@ -25,9 +25,10 @@ logH = Handle.LogHandle { Handle.logger = \level mess -> putStrLn mess }
 urlApiTelegram :: String
 urlApiTelegram = "https://api.telegram.org/bot"
 
-getUpdates :: Token -> IO B.ByteString 
-getUpdates (Token token) = do
+getUpdates :: Handle.LogHandle IO -> Token -> IO B.ByteString 
+getUpdates logHandle (Token token) = do
   let req = urlApiTelegram ++ token ++ "/getUpdates" ++ "?timeout=29"
+  Handle.logger logHandle DEBUG "get url api"
   resp <- N.httpBS $ N.parseRequest_ req 
   return $ N.getResponseBody resp 
 

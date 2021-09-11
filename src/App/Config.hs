@@ -21,9 +21,7 @@ data ConfData = ConfData { helpText :: String
 
 readConfig :: IO CT.Config 
 readConfig = do
-  print "read config start"
   conf <- C.load [C.Required "src/config/confBot.cfg"]
-  print "read config end"
   return conf
 
 readToken :: IO Token
