@@ -13,6 +13,12 @@ import Control.Monad
 
 import Type.Response
 import App.Config
+import qualified App.Handle.Request as Handle 
+
+-- logger Handle
+
+logH ::Handle.LogHandle IO
+logH = Handle.LogHandle { Handle.logger = \level mess -> putStrLn mess }
 
 -- get Response
 
@@ -93,16 +99,8 @@ sendEcho (RP resp) conf listUsers token = do
 
 -- get offset and next step
 
-getOffset :: ResponseAll -> Offset 
-getOffset (RT a) = show $ ( getUpdateId a ) + 1 
-getOffset (RB a) = show $ ( getUpdateId a ) + 1 
-getOffset (RS a) = show $ ( getUpdateId a ) + 1 
-getOffset (RA a) = show $ ( getUpdateId a ) + 1
-getOffset (RVd a) = show $ ( getUpdateId a ) + 1
-getOffset (RVo a) = show $ ( getUpdateId a ) + 1
-getOffset (RD a) = show $ ( getUpdateId a ) + 1
-getOffset (RP a) = show $ ( getUpdateId a ) + 1
-getOffset (RE a) = " "
+getOffset :: Handle.LogHandle IO -> ResponseAll -> IO Offset
+getOffset logH resp = Handle.getOffset logH resp
 
 nextStepRequest :: Offset -> Token -> IO ()
 nextStepRequest " " _ = return ()
@@ -179,59 +177,10 @@ sendPhoto resp (Token token) numOfRepeat = do
   replicateM_ numOfRepeat $ N.httpNoBody $ N.parseRequest_ req
   return ()
 
-
 -- add new user
 
-addNewUser :: ResponseAll -> ListUsers -> Int -> ListUsers 
-addNewUser (RT resp) listUsers numOfRepeat = if Map.member (getJustId resp) listUsers
-                                        then listUsers
-                                        else Map.insert (getJustId resp) numOfRepeat listUsers
-
-addNewUser (RS resp) listUsers numOfRepeat = if Map.member (getJustId resp) listUsers
-                                        then listUsers
-                                        else Map.insert (getJustId resp) numOfRepeat listUsers
-
-addNewUser (RVd resp) listUsers numOfRepeat = if Map.member (getJustId resp) listUsers
-                                        then listUsers
-                                        else Map.insert (getJustId resp) numOfRepeat listUsers
-
-addNewUser (RVo resp) listUsers numOfRepeat = if Map.member (getJustId resp) listUsers
-                                        then listUsers
-                                        else Map.insert (getJustId resp) numOfRepeat listUsers
-
-addNewUser (RD resp) listUsers numOfRepeat = if Map.member (getJustId resp) listUsers
-                                        then listUsers
-                                        else Map.insert (getJustId resp) numOfRepeat listUsers
-
-addNewUser (RP resp) listUsers numOfRepeat = if Map.member (getJustId resp) listUsers
-                                        then listUsers
-                                        else Map.insert (getJustId resp) numOfRepeat listUsers
-
-addNewUser (RB resp) listUsers numOfRepeat = Map.insert (getJustId resp) num listUsers 
-  where num = read $ T.unpack (getNumRepeat resp) :: Int 
-
-addNewUser (RE resp) listUsers numOfRepeat = listUsers 
-
-addNewUser (RA resp) listUsers numOfRepeat = listUsers
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+addNewUser :: Handle.LogHandle IO -> ResponseAll -> ListUsers -> Int -> IO ListUsers
+addNewUser logH resp listUsers numOfRepeat = Handle.addNewUser logH resp listUsers numOfRepeat
 
 
 

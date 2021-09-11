@@ -26,8 +26,7 @@ source-repository head
 library
   exposed-modules:
       App.Config
-      App.Handle.Logger
-      App.Logger
+      App.Handle.Request
       App.MainLoop
       App.Request
       Type.Response
