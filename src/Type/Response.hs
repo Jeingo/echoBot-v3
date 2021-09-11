@@ -10,6 +10,7 @@ import Data.Aeson
 import Control.Monad
 import Data.Maybe
 
+data LogLevel = DEBUG | INFO | WARN deriving (Show, Eq)
 
 type ListUsers = Map.Map Int Int
 

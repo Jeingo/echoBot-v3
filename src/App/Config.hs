@@ -6,6 +6,8 @@ import qualified Data.Configurator as C
 import qualified Data.Configurator.Types as CT
 import qualified Data.Text as T
 
+import Type.Response
+
 newtype Token = Token String deriving (Show, Eq)
 
 data ConfData = ConfData { helpText :: String
@@ -13,11 +15,16 @@ data ConfData = ConfData { helpText :: String
                          , startRepeat :: Int 
                          , button :: String
                          , getToken :: Token
+                         , getLogLevel :: LogLevel
                          } deriving (Show, Eq)
 
 
 readConfig :: IO CT.Config 
-readConfig = C.load [C.Required "src/config/confBot.cfg"]
+readConfig = do
+  print "read config start"
+  conf <- C.load [C.Required "src/config/confBot.cfg"]
+  print "read config end"
+  return conf
 
 readToken :: IO Token
 readToken = do
@@ -30,9 +37,11 @@ makeMyConfig conf = do
   rT <- C.require conf (T.pack "main.repeatText") :: IO String
   sR <- C.require conf (T.pack "main.startRepeat") :: IO Int 
   btTmp <- C.require conf (T.pack "main.countButton") :: IO Int 
+  logLTmp <- C.require conf (T.pack "main.logLevel") :: IO String 
   let bt = makeButton btTmp
   tok <- readToken
-  return $ ConfData hT rT sR bt tok
+  let logL = convertLog logLTmp
+  return $ ConfData hT rT sR bt tok logL
 
 
 -- button generator
@@ -52,3 +61,7 @@ buttonGenerate num = buttonGenerate (num - 1) ++ " , " ++ (buttonTemplate num)
 makeButton :: Int -> String
 makeButton num = buttonTemplateStart $ buttonGenerate num
 
+convertLog :: String -> LogLevel
+convertLog "DEBUG" = DEBUG
+convertLog "INFO" = INFO
+convertLog "WARN" = WARN

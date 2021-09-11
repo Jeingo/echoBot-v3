@@ -11,7 +11,8 @@ mainLoop :: ConfData -> ListUsers -> IO ()
 mainLoop conf listUsers = do
 
   let token = getToken conf
-
+  let logLevel = getLogLevel conf
+  
   responseTmp <- getUpdates token 
   let response = parseResponseToMyType responseTmp  
 
