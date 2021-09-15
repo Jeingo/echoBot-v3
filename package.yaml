@@ -30,6 +30,7 @@ dependencies:
 - vector
 - containers 
 - hspec
+- time
 
 library:
   source-dirs: src

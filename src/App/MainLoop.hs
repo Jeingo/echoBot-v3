@@ -13,15 +13,15 @@ mainLoop conf listUsers = do
   let token = getToken conf
   let logLevel = getLogLevel conf
 
-  responseTmp <- getUpdates logH token 
-  let response = parseResponseToMyType responseTmp  
+  responseTmp <- getUpdates logLevel token 
+  response <- parseResponseToMyType responseTmp logLevel
   
-  newListUsers <- addNewUser logH response listUsers (startRepeat conf)
+  newListUsers <- addNewUser logHInfo logLevel response listUsers (startRepeat conf)
 
-  sendEcho response conf newListUsers token
+  sendEcho logLevel response conf newListUsers token
  
-  responseOffset <- getOffset logH response 
-  nextStepRequest responseOffset token
+  responseOffset <- getOffset logHInfo logLevel response 
+  nextStepRequest logLevel responseOffset token
 
   mainLoop conf newListUsers
 

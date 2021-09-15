@@ -5,50 +5,50 @@ import qualified Data.Text as T
 import Type.Response
 
 data LogHandle m = LogHandle
-  { logger :: LogLevel -> String -> m () }
+  { logger :: LogLevel -> LogLevel -> String -> m () }
 
-addNewUser :: Monad m => LogHandle m -> ResponseAll -> ListUsers -> Int -> m ListUsers 
-addNewUser logH (RT resp) listUsers numOfRepeat = if Map.member (getJustId resp) listUsers
-                                        then return listUsers
-                                        else return $ Map.insert (getJustId resp) numOfRepeat listUsers
+addNewUser :: Monad m => LogHandle m -> LogLevel -> ResponseAll -> ListUsers -> Int -> m ListUsers 
+addNewUser logH logLevel (RT resp) listUsers numOfRepeat = if Map.member (getJustId resp) listUsers
+                                        then do logger logH logLevel INFO "it's the same user" ; return listUsers
+                                        else do logger logH logLevel INFO "add new user" ; return $ Map.insert (getJustId resp) numOfRepeat listUsers
 
-addNewUser logH (RS resp) listUsers numOfRepeat = if Map.member (getJustId resp) listUsers
-                                        then return listUsers
-                                        else return $ Map.insert (getJustId resp) numOfRepeat listUsers
+addNewUser logH logLevel (RS resp) listUsers numOfRepeat = if Map.member (getJustId resp) listUsers
+                                        then do logger logH logLevel INFO "it's the same user" ; return listUsers
+                                        else do logger logH logLevel INFO "add new user" ; return $ Map.insert (getJustId resp) numOfRepeat listUsers
 
-addNewUser logH (RVd resp) listUsers numOfRepeat = if Map.member (getJustId resp) listUsers
-                                        then return listUsers
-                                        else return $ Map.insert (getJustId resp) numOfRepeat listUsers
+addNewUser logH logLevel (RVd resp) listUsers numOfRepeat = if Map.member (getJustId resp) listUsers
+                                        then do logger logH logLevel INFO "it's the same user" ; return listUsers
+                                        else do logger logH logLevel INFO "add new user" ; return $ Map.insert (getJustId resp) numOfRepeat listUsers
 
-addNewUser logH (RVo resp) listUsers numOfRepeat = if Map.member (getJustId resp) listUsers
-                                        then return listUsers
-                                        else return $ Map.insert (getJustId resp) numOfRepeat listUsers
+addNewUser logH logLevel (RVo resp) listUsers numOfRepeat = if Map.member (getJustId resp) listUsers
+                                        then do logger logH logLevel INFO "it's the same user" ; return listUsers
+                                        else do logger logH logLevel INFO "add new user" ; return $ Map.insert (getJustId resp) numOfRepeat listUsers
 
-addNewUser logH (RD resp) listUsers numOfRepeat = if Map.member (getJustId resp) listUsers
-                                        then return listUsers
-                                        else return $ Map.insert (getJustId resp) numOfRepeat listUsers
+addNewUser logH logLevel (RD resp) listUsers numOfRepeat = if Map.member (getJustId resp) listUsers
+                                        then do logger logH logLevel INFO "it's the same user" ; return listUsers
+                                        else do logger logH logLevel INFO "add new user" ; return $ Map.insert (getJustId resp) numOfRepeat listUsers
 
-addNewUser logH (RP resp) listUsers numOfRepeat = if Map.member (getJustId resp) listUsers
-                                        then return listUsers
-                                        else return $ Map.insert (getJustId resp) numOfRepeat listUsers
+addNewUser logH logLevel (RP resp) listUsers numOfRepeat = if Map.member (getJustId resp) listUsers
+                                        then do logger logH logLevel INFO "it's the same user" ; return listUsers
+                                        else do logger logH logLevel INFO "add new user" ; return $ Map.insert (getJustId resp) numOfRepeat listUsers
 
-addNewUser logH (RB resp) listUsers numOfRepeat = return $ Map.insert (getJustId resp) num listUsers 
+addNewUser logH logLevel (RB resp) listUsers numOfRepeat = do logger logH logLevel INFO "change number of repeat for user " ; return $ Map.insert (getJustId resp) num listUsers 
   where num = read $ T.unpack (getNumRepeat resp) :: Int 
 
-addNewUser logH (RE resp) listUsers numOfRepeat = return listUsers 
+addNewUser logH logLevel (RE resp) listUsers numOfRepeat = return listUsers 
 
-addNewUser logH (RA resp) listUsers numOfRepeat = return listUsers
+addNewUser logH logLevel (RA resp) listUsers numOfRepeat = return listUsers
 
 
-getOffset :: Monad m => LogHandle m -> ResponseAll -> m Offset 
-getOffset logH (RT a) = return $ show $ ( getUpdateId a ) + 1 
-getOffset logH (RB a) = return $ show $ ( getUpdateId a ) + 1
-getOffset logH (RS a) = return $ show $ ( getUpdateId a ) + 1
-getOffset logH (RA a) = return $ show $ ( getUpdateId a ) + 1
-getOffset logH (RVd a) = return $ show $ ( getUpdateId a ) + 1
-getOffset logH (RVo a) = return $ show $ ( getUpdateId a ) + 1
-getOffset logH (RD a) = return $ show $ ( getUpdateId a ) + 1
-getOffset logH (RP a) = return $ show $ ( getUpdateId a ) + 1
-getOffset logH (RE a) = return " "
+getOffset :: Monad m => LogHandle m -> LogLevel -> ResponseAll -> m Offset 
+getOffset logH logLevel (RT a) = do logger logH logLevel INFO "get offset" ; return $ show $ ( getUpdateId a ) + 1 
+getOffset logH logLevel (RB a) = do logger logH logLevel INFO "get offset" ; return $ show $ ( getUpdateId a ) + 1
+getOffset logH logLevel (RS a) = do logger logH logLevel INFO "get offset" ; return $ show $ ( getUpdateId a ) + 1
+getOffset logH logLevel (RA a) = do logger logH logLevel INFO "get offset" ; return $ show $ ( getUpdateId a ) + 1
+getOffset logH logLevel (RVd a) = do logger logH logLevel INFO "get offset" ; return $ show $ ( getUpdateId a ) + 1
+getOffset logH logLevel (RVo a) = do logger logH logLevel INFO "get offset" ; return $ show $ ( getUpdateId a ) + 1
+getOffset logH logLevel (RD a) = do logger logH logLevel INFO "get offset" ; return $ show $ ( getUpdateId a ) + 1
+getOffset logH logLevel (RP a) = do logger logH logLevel INFO "get offset" ; return $ show $ ( getUpdateId a ) + 1
+getOffset logH logLevel (RE a) = return " "
 
 

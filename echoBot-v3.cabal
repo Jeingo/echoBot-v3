@@ -27,6 +27,7 @@ library
   exposed-modules:
       App.Config
       App.Handle.Request
+      App.Logger
       App.MainLoop
       App.Request
       Type.Response
@@ -43,6 +44,7 @@ library
     , hspec
     , http-conduit
     , text
+    , time
     , utf8-string
     , vector
   default-language: Haskell2010
@@ -64,6 +66,7 @@ executable echoBot-v3-exe
     , hspec
     , http-conduit
     , text
+    , time
     , utf8-string
     , vector
   default-language: Haskell2010
@@ -86,6 +89,7 @@ test-suite echoBot-v3-test
     , hspec
     , http-conduit
     , text
+    , time
     , utf8-string
     , vector
   default-language: Haskell2010

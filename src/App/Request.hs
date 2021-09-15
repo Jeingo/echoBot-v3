@@ -13,38 +13,43 @@ import Control.Monad
 
 import Type.Response
 import App.Config
+import App.Logger
 import qualified App.Handle.Request as Handle 
 
 -- logger Handle
 
-logH ::Handle.LogHandle IO
-logH = Handle.LogHandle { Handle.logger = \level mess -> putStrLn mess }
+logHInfo ::Handle.LogHandle IO
+logHInfo = Handle.LogHandle { Handle.logger = \level typeLog mess -> logger level INFO mess }
+
+logHWarn ::Handle.LogHandle IO
+logHWarn = Handle.LogHandle { Handle.logger = \level typeLog mess -> logger level WARN mess }
 
 -- get Response
 
 urlApiTelegram :: String
 urlApiTelegram = "https://api.telegram.org/bot"
 
-getUpdates :: Handle.LogHandle IO -> Token -> IO B.ByteString 
-getUpdates logHandle (Token token) = do
+getUpdates :: LogLevel -> Token -> IO B.ByteString 
+getUpdates logLevel (Token token) = do
   let req = urlApiTelegram ++ token ++ "/getUpdates" ++ "?timeout=29"
-  Handle.logger logHandle DEBUG "get url api"
+  loggerInfo logLevel "make url api -----"
   resp <- N.httpBS $ N.parseRequest_ req 
+  loggerInfo logLevel "get update"
   return $ N.getResponseBody resp 
 
 -- parse Response
 
-parseResponseToMyType :: B.ByteString -> ResponseAll 
-parseResponseToMyType respTmp
-  | respE /= Nothing = RE (fromJust respE)
-  | respT /= Nothing = RT (fromJust respT) 
-  | respB /= Nothing = RB (fromJust respB) 
-  | respS /= Nothing = RS (fromJust respS)
-  | respVd /= Nothing = RVd (fromJust respVd)
-  | respVo /= Nothing = RVo (fromJust respVo)
-  | respD /= Nothing = RD (fromJust respD)
-  | respP /= Nothing = RP (fromJust respP)
-  | respA /= Nothing = RA (fromJust respA)
+parseResponseToMyType :: B.ByteString -> LogLevel -> IO ResponseAll 
+parseResponseToMyType respTmp logLevel
+  | respE /= Nothing = do loggerInfo logLevel "This is empty response" ; return $ RE (fromJust respE)
+  | respT /= Nothing = do loggerInfo logLevel "This is text response " ; return $ RT (fromJust respT) 
+  | respB /= Nothing = do loggerInfo logLevel "This is button response" ; return $ RB (fromJust respB) 
+  | respS /= Nothing = do loggerInfo logLevel "This is stiker response" ; return $ RS (fromJust respS)
+  | respVd /= Nothing = do loggerInfo logLevel "This is video response" ; return $ RVd (fromJust respVd)
+  | respVo /= Nothing = do loggerInfo logLevel "This is voice response" ; return $ RVo (fromJust respVo)
+  | respD /= Nothing = do loggerInfo logLevel "This is document response" ; return $ RD (fromJust respD)
+  | respP /= Nothing = do loggerInfo logLevel "This is photo response" ; return $ RP (fromJust respP)
+  | respA /= Nothing = do loggerInfo logLevel "This is ohter response" ; return $ RA (fromJust respA)
   where respT = decodeStrict respTmp :: Maybe RespText
         respB = decodeStrict respTmp :: Maybe RespButton
         respS = decodeStrict respTmp :: Maybe RespStiker
@@ -57,57 +62,63 @@ parseResponseToMyType respTmp
 
 -- send Request
 
-sendEcho :: ResponseAll -> ConfData -> ListUsers -> Token -> IO () 
+sendEcho :: LogLevel -> ResponseAll -> ConfData -> ListUsers -> Token -> IO () 
 
-sendEcho (RE resp) conf listUsers token = return ()
+sendEcho logLevel (RE resp) conf listUsers token = return ()
 
-sendEcho (RB resp) conf listUsers token = return ()
+sendEcho logLevel (RB resp) conf listUsers token = return ()
 
-sendEcho (RA resp) conf listUsers token = return ()
+sendEcho logLevel (RA resp) conf listUsers token = return ()
 
-sendEcho (RT resp) conf listUsers token = do
+sendEcho logLevel (RT resp) conf listUsers token = do
   let numOfRepeat = fromJust $ Map.lookup (getJustId resp) listUsers 
   case (getMessage resp) of
-    "/help" -> sendHelpText (helpText conf) (getJustId resp) token
-    "/repeat" -> sendKeyboard (repeatText conf) (button conf) (getJustId resp) token
-    _ -> sendMessages resp token numOfRepeat
+    "/help" -> do loggerInfo logLevel "send /help text" ; sendHelpText (helpText conf) (getJustId resp) token
+    "/repeat" -> do loggerInfo logLevel "send /repeat text" ; sendKeyboard (repeatText conf) (button conf) (getJustId resp) token
+    _ -> do loggerInfo logLevel "send message text" ; sendMessages resp token numOfRepeat
   return () 
 
-sendEcho (RS resp) conf listUsers token = do
+sendEcho logLevel (RS resp) conf listUsers token = do
+  loggerInfo logLevel "send stiker"
   let numOfRepeat = fromJust $ Map.lookup (getJustId resp) listUsers 
   sendStikers resp token numOfRepeat
   return () 
 
-sendEcho (RVd resp) conf listUsers token = do
+sendEcho logLevel (RVd resp) conf listUsers token = do
+  loggerInfo logLevel "send video"
   let numOfRepeat = fromJust $ Map.lookup (getJustId resp) listUsers 
   sendVideo resp token numOfRepeat
   return () 
 
-sendEcho (RVo resp) conf listUsers token = do
+sendEcho logLevel (RVo resp) conf listUsers token = do
+  loggerInfo logLevel "send voice"
   let numOfRepeat = fromJust $ Map.lookup (getJustId resp) listUsers 
   sendVoice resp token numOfRepeat
   return () 
 
-sendEcho (RD resp) conf listUsers token = do
+sendEcho logLevel (RD resp) conf listUsers token = do
+  loggerInfo logLevel "send document"
   let numOfRepeat = fromJust $ Map.lookup (getJustId resp) listUsers 
   sendDocument resp token numOfRepeat
   return () 
 
-sendEcho (RP resp) conf listUsers token = do
+sendEcho logLevel (RP resp) conf listUsers token = do
+  loggerInfo logLevel "send photo"
   let numOfRepeat = fromJust $ Map.lookup (getJustId resp) listUsers 
   sendPhoto resp token numOfRepeat
   return () 
 
 -- get offset and next step
 
-getOffset :: Handle.LogHandle IO -> ResponseAll -> IO Offset
-getOffset logH resp = Handle.getOffset logH resp
+getOffset :: Handle.LogHandle IO -> LogLevel ->  ResponseAll -> IO Offset
+getOffset logH logLevel resp = Handle.getOffset logH logLevel resp
 
-nextStepRequest :: Offset -> Token -> IO ()
-nextStepRequest " " _ = return ()
-nextStepRequest offset (Token token ) = do
+nextStepRequest :: LogLevel -> Offset -> Token -> IO ()
+nextStepRequest _ " " _ = return ()
+nextStepRequest logLevel offset (Token token ) = do
   let req = urlApiTelegram ++ token ++  "/getUpdates" ++ "?offset=" ++ offset
   N.httpNoBody $ N.parseRequest_ req
+  loggerInfo logLevel "next step"
   return ()
 
 -- helper for send function 
@@ -180,8 +191,8 @@ sendPhoto resp (Token token) numOfRepeat = do
 
 -- add new user
 
-addNewUser :: Handle.LogHandle IO -> ResponseAll -> ListUsers -> Int -> IO ListUsers
-addNewUser logH resp listUsers numOfRepeat = Handle.addNewUser logH resp listUsers numOfRepeat
+addNewUser :: Handle.LogHandle IO -> LogLevel -> ResponseAll -> ListUsers -> Int -> IO ListUsers
+addNewUser logH logLevel resp listUsers numOfRepeat = Handle.addNewUser logH logLevel resp listUsers numOfRepeat
 
 
 

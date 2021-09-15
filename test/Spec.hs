@@ -37,36 +37,39 @@ responsePhoto :: ResponseAll
 responsePhoto = RP $ RespPhoto 456 4567 "fileId456"
 
 logH :: Handle.LogHandle Identity
-logH = Handle.LogHandle { Handle.logger = \level mess -> return () }
+logH = Handle.LogHandle { Handle.logger = \level typeLog mess -> return () }
 
-addNewUser :: Handle.LogHandle Identity -> ResponseAll -> ListUsers -> Int -> Identity ListUsers
-addNewUser logH response listUsers numOfRepeat = Handle.addNewUser logH response listUsers numOfRepeat
+logLevel :: LogLevel
+logLevel = DEBUG
 
-getOffset :: Handle.LogHandle Identity -> ResponseAll -> Identity Offset
-getOffset logH resp = Handle.getOffset logH resp
+addNewUser :: Handle.LogHandle Identity -> LogLevel -> ResponseAll -> ListUsers -> Int -> Identity ListUsers
+addNewUser logH logLevel response listUsers numOfRepeat = Handle.addNewUser logH logLevel response listUsers numOfRepeat
+
+getOffset :: Handle.LogHandle Identity -> LogLevel -> ResponseAll -> Identity Offset
+getOffset logH logLevel resp = Handle.getOffset logH logLevel resp
 
 test :: Spec
 test = do
   describe "Test function addNewUser : " $ do
     it "test - add new user (Text)" $ do
-      let result = addNewUser logH responseText listUsers (startRepeat conf) 
+      let result = addNewUser logH logLevel responseText listUsers (startRepeat conf) 
       result `shouldBe` return (Map.singleton 1234 3 )
     it "test - add new user (Document)" $ do
-      let result = addNewUser logH responseDocument listUsers (startRepeat conf) 
+      let result = addNewUser logH logLevel responseDocument listUsers (startRepeat conf) 
       result `shouldBe` return (Map.singleton 2345 3 ) 
     it "test - add new user (Button)" $ do
-      let result = addNewUser logH responseButton listUsers (startRepeat conf) 
+      let result = addNewUser logH logLevel responseButton listUsers (startRepeat conf) 
       result `shouldBe` return (Map.singleton 3456 1 )
     it "test - add new user (Empty)" $ do
-      let result = addNewUser logH responseEmpty listUsers (startRepeat conf) 
+      let result = addNewUser logH logLevel responseEmpty listUsers (startRepeat conf) 
       result `shouldBe` return (Map.empty ) 
   describe "Test function getOffset : " $ do
     it "test - get offset (Text)" $ do
-      let result = getOffset logH responseText
+      let result = getOffset logH logLevel responseText
       result `shouldBe` return "124"
     it "test - get offset (Photo)" $ do
-      let result = getOffset logH responsePhoto
+      let result = getOffset logH logLevel responsePhoto
       result `shouldBe` return "457"
     it "test - get offset (Empty)" $ do
-      let result = getOffset logH responseEmpty
+      let result = getOffset logH logLevel responseEmpty
       result `shouldBe` return " "
